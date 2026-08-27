@@ -1,0 +1,54 @@
+.multiplay-room {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 420px;
+  padding: 16px;
+  overflow: hidden;
+}
+
+.multiplay-room header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.multiplay-room header span {
+  flex: 1;
+  color: #888;
+}
+
+.multiplay-room button {
+  cursor: pointer;
+}
+
+.multiplay-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.8fr);
+  gap: 16px;
+  min-height: 0;
+  flex: 1;
+  margin-top: 16px;
+}
+
+.multiplay-lyrics,
+.multiplay-content aside {
+  overflow: auto;
+}
+
+.multiplay-lyrics div {
+  padding: 4px 0;
+  color: #888;
+}
+
+.multiplay-lyrics .active {
+  color: #1677ff;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .multiplay-content {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "label": "Music Room",
+  "label.zh-CN": "群组音乐房间",
+  "name": "com.music.multiplay",
+  "url": "{BACKEND}/plugins/com.music.multiplay/index.js",
+  "version": "0.0.0",
+  "author": "msgbyte",
+  "description": "Synchronized group music room",
+  "description.zh-CN": "在群组中同步播放音乐",
+  "requireRestart": true
+}
