@@ -2358,6 +2358,37 @@ importers:
         specifier: ^5.3.6
         version: 5.3.6(react-dom@18.2.0)(react-is@18.2.0)(react@18.2.0)
 
+  server/plugins/com.music.multiplay:
+    dependencies:
+      tailchat-server-sdk:
+        specifier: '*'
+        version: link:../../packages/sdk
+    devDependencies:
+      '@types/react':
+        specifier: 18.0.20
+        version: 18.0.20
+      less:
+        specifier: ^4.1.3
+        version: 4.1.3
+      mini-star:
+        specifier: '*'
+        version: 1.3.1
+      rollup-plugin-less:
+        specifier: ^1.1.3
+        version: 1.1.3
+
+  server/plugins/com.music.multiplay/web/plugins/com.music.multiplay:
+    devDependencies:
+      '@types/styled-components':
+        specifier: ^5.1.26
+        version: 5.1.26
+      react:
+        specifier: 18.2.0
+        version: 18.2.0
+      styled-components:
+        specifier: ^5.3.6
+        version: 5.3.10(react-dom@18.2.0)(react-is@18.2.0)(react@18.2.0)
+
   server/test/demo/openapi-client:
     dependencies:
       axios:
@@ -30670,6 +30701,7 @@ packages:
 
   /rimraf@2.7.1:
     resolution: {integrity: sha512-uWjbaKIK3T1OSVptzX7Nl6PvQ3qAGtKEtVRjRuazjfL3Bx5eI409VZSqgND+4UNnmzLVdPj9FqFJNPqBZFve4w==}
+    deprecated: Rimraf versions prior to v4 are no longer supported
     hasBin: true
     dependencies:
       glob: 7.2.3

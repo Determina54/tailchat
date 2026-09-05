@@ -18,7 +18,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: moonrailgun/tailchat
+          images: determina54/tailchat
           # generate Docker tags based on the following events/attributes
           tags: |
             type=ref,event=branch
@@ -46,9 +46,4 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: VERSION=docker-${{ steps.meta.outputs.tags }}
-      - name: Notify to Service
-        continue-on-error: true
-        uses: muinmomin/webhook-action@v1.0.0
-        with:
-          url: https://tailchat-nightly.moonrailgun.com/api/plugin:com.msgbyte.simplenotify/webhook/callback
-          data: '{"text": "The new docker images has been push, visit https://hub.docker.com/r/moonrailgun/tailchat/tags to learn more", "subscribeId": "${{ secrets.NOTIFY_SUB_ID}}"}'
+      
