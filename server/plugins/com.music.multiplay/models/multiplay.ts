@@ -1,6 +1,15 @@
 import { db } from 'tailchat-server-sdk';
+import type { MultiplayTrack, RoomMember } from '../services/musicRoomState';
+
 const { getModelForClass, prop, modelOptions, TimeStamps } = db;
 
+/**
+ * 音乐房间的持久化快照
+ *
+ * NOTICE:
+ * - Redis 是实时权威状态，本模型只是耐久快照，用于 Redis 缺失时恢复。
+ * - 字段与 services/musicRoomState.ts 的 MusicRoomState 对应。
+ */
 @modelOptions({
   options: {
     customName: 'p_multiplay',
@@ -12,6 +21,9 @@ export class Multiplay extends TimeStamps implements db.Base {
 
   @prop({ required: true, unique: true })
   groupId: string;
+
+  @prop({ default: 0 })
+  revision: number;
 
   @prop({ type: () => [Object], default: () => [] })
   queue: MultiplayTrack[];
@@ -25,14 +37,20 @@ export class Multiplay extends TimeStamps implements db.Base {
   @prop({ type: () => Object })
   currentTrack?: MultiplayTrack;
 
+  /**
+   * 当前曲目的基准秒数（配合 playingSince 推导 currentTime）
+   */
   @prop({ default: 0 })
-  currentTime: number;
+  baseTime: number;
 
   @prop({ default: false })
   isPlaying: boolean;
 
+  /**
+   * 播放起点，epoch 毫秒（由 Redis 时钟提供）
+   */
   @prop()
-  playingSince?: Date;
+  playingSince?: number;
 
   @prop({ default: 80 })
   volume: number;
@@ -41,29 +59,17 @@ export class Multiplay extends TimeStamps implements db.Base {
   ownerId?: string;
 
   @prop({ type: () => [Object], default: () => [] })
-  members: MultiplayMember[];
+  members: RoomMember[];
 
-  @prop({ default: 0 })
-  revision: number;
+  /**
+   * @deprecated 旧版本字段，仅用于迁移，新代码不再读写
+   */
+  @prop()
+  currentTime?: number;
 }
 
-export interface MultiplayTrack {
-  id: string;
-  name: string;
-  artist?: string;
-  picUrl?: string;
-  lyric?: string;
-  tlyric?: string;
-  addedBy: string;
-  addedAt: Date;
-}
-
-export interface MultiplayMember {
-  userId: string;
-  userName: string;
-  joinedAt: Date;
-  muteUntil?: Date;
-}
+export type { MultiplayTrack, RoomMember };
+export type MultiplayMember = RoomMember;
 
 export type MultiplayDocument = db.DocumentType<Multiplay>;
 

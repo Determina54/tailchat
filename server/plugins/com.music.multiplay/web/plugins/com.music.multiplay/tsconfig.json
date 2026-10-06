@@ -1,7 +1,13 @@
 {
   "compilerOptions": {
+    "target": "es2019",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "lib": ["dom", "dom.iterable", "es2019"],
     "esModuleInterop": true,
     "jsx": "react",
+    "skipLibCheck": true,
     "importsNotUsedAsValues": "error"
-  }
+  },
+  "include": ["src", "types"]
 }

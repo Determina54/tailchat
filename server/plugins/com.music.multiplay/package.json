@@ -8,7 +8,9 @@
   "private": true,
   "scripts": {
     "build:web": "ministar buildPlugin all",
-    "build:web:watch": "ministar watchPlugin all"
+    "build:web:watch": "ministar watchPlugin all",
+    "check:type": "cd web/plugins/com.music.multiplay && pnpm check:type",
+    "test:web": "cd web/plugins/com.music.multiplay && pnpm test"
   },
   "devDependencies": {
     "@types/react": "18.0.20",
@@ -17,6 +19,7 @@
     "rollup-plugin-less": "^1.1.3"
   },
   "dependencies": {
+    "got": "11.8.3",
     "tailchat-server-sdk": "*"
   }
 }

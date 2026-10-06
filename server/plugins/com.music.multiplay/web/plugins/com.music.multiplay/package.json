@@ -5,12 +5,24 @@
   "description": "听音乐插件",
   "private": true,
   "scripts": {
-    "sync:declaration": "tailchat declaration github"
+    "sync:declaration": "tailchat declaration github",
+    "check:type": "tsc --noEmit -p .",
+    "test": "jest --config ./jest.config.js"
   },
   "dependencies": {},
   "devDependencies": {
+    "@testing-library/react": "^13.4.0",
+    "@types/jest": "^29.4.0",
+    "@types/react": "18.0.20",
+    "@types/react-dom": "18.0.6",
     "@types/styled-components": "^5.1.26",
+    "identity-obj-proxy": "^3.0.0",
+    "jest": "27.5.1",
+    "jest-environment-jsdom": "27.5.1",
     "react": "18.2.0",
-    "styled-components": "^5.3.6"
+    "react-dom": "18.2.0",
+    "styled-components": "^5.3.6",
+    "ts-jest": "27.1.4",
+    "typescript": "4.9.4"
   }
 }

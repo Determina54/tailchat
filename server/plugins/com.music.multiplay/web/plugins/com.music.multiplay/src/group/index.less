@@ -5,46 +5,170 @@
   min-height: 420px;
   padding: 16px;
   overflow: hidden;
+  gap: 12px;
 }
 
 .multiplay-room header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
-.multiplay-room header span {
+.multiplay-track {
+  display: flex;
+  flex-direction: column;
   flex: 1;
+  min-width: 160px;
+}
+
+.multiplay-track span {
   color: #888;
+  font-size: 12px;
+}
+
+.multiplay-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 2;
+  min-width: 200px;
+  font-size: 12px;
+  color: #888;
+}
+
+.multiplay-progress input[type='range'] {
+  flex: 1;
+}
+
+.multiplay-controls,
+.multiplay-volume {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #888;
+}
+
+.multiplay-volume input[type='range'] {
+  width: 96px;
 }
 
 .multiplay-room button {
   cursor: pointer;
 }
 
+.multiplay-room input[type='range']:disabled {
+  cursor: not-allowed;
+}
+
+.multiplay-degraded {
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: rgba(250, 173, 20, 0.15);
+  color: #d48806;
+  font-size: 12px;
+}
+
 .multiplay-content {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.8fr);
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.8fr);
   gap: 16px;
   min-height: 0;
   flex: 1;
-  margin-top: 16px;
 }
 
 .multiplay-lyrics,
 .multiplay-content aside {
   overflow: auto;
+  min-height: 0;
 }
 
 .multiplay-lyrics div {
   padding: 4px 0;
   color: #888;
+  word-break: break-word;
 }
 
 .multiplay-lyrics .active {
   color: #1677ff;
   font-weight: 600;
+}
+
+.multiplay-lyric-translation {
+  color: #aaa;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.multiplay-content aside {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.multiplay-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: #888;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+  padding-bottom: 4px;
+}
+
+.multiplay-search {
+  display: flex;
+  gap: 6px;
+}
+
+.multiplay-search input {
+  flex: 1;
+  min-width: 0;
+}
+
+.multiplay-results {
+  max-height: 180px;
+  overflow: auto;
+}
+
+.multiplay-result,
+.multiplay-queue-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.multiplay-result em {
+  margin-left: 6px;
+  color: #999;
+  font-style: normal;
+  font-size: 12px;
+}
+
+.multiplay-result span,
+.multiplay-queue-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.multiplay-empty {
+  color: #999;
+  font-size: 12px;
+  padding: 8px 0;
+}
+
+.multiplay-members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  color: #888;
 }
 
 @media (max-width: 640px) {
