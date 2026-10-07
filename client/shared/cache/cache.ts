@@ -19,6 +19,8 @@ import {
 import { fetchUserInfo, getUserSettings, UserBaseInfo } from '../model/user';
 import { parseUrlStr } from '../utils/url-helper';
 import { queryClient } from './index';
+import { getReduxStore } from '../redux/store';
+import _omit from 'lodash/omit';
 
 export enum CacheKey {
   user = 'user',
@@ -37,26 +39,32 @@ export async function getCachedUserInfo(
   userId: string,
   refetch = false
 ): Promise<UserBaseInfo> {
+  const viewerId = getReduxStore().getState().user.info?._id;
   const data = await queryClient.fetchQuery(
-    [CacheKey.user, userId],
+    [CacheKey.user, userId, viewerId],
     () => fetchUserInfo(userId),
     {
       staleTime: refetch ? 0 : 2 * 60 * 60 * 1000, // 缓存2小时
     }
   );
 
-  return data;
+  // Identity may have changed while the request was in flight.
+  return data && data._id !== getReduxStore().getState().user.info?._id
+    ? _omit(data, 'email')
+    : data;
 }
 
 /**
  * 获取缓存的会话信息
  */
 export async function getCachedConverseInfo(
-  converseId: string
+  converseId: string,
+  refetch = false
 ): Promise<ChatConverseInfo> {
   const data = await queryClient.fetchQuery(
     [CacheKey.converse, converseId],
-    () => fetchConverseInfo(converseId)
+    () => fetchConverseInfo(converseId),
+    { staleTime: refetch ? 0 : 10 * 1000 }
   );
 
   return data;

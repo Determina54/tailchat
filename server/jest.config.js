@@ -2,14 +2,11 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  setupFiles: [
-    '<rootDir>/test/setup.ts'
-  ],
-  testPathIgnorePatterns: ['/node_modules/', '/dist/', '/plugins/.*/web/'],
-  // axios 1.x 的 main 指向 ESM，jest 27 不识别 package.json exports，映射到 CJS 构建
+  setupFiles: ['<rootDir>/test/setup.ts'],
+  testPathIgnorePatterns: ['/node_modules/', '/dist/'],
   moduleNameMapper: {
-    '^axios$':
-      '<rootDir>/packages/sdk/node_modules/axios/dist/node/axios.cjs',
+    // jest 27 不识别 exports 字段, 会解析到 axios 的 esm 入口
+    '^axios$': '<rootDir>/packages/sdk/node_modules/axios/dist/node/axios.cjs',
   },
   globals: {
     'ts-jest': {

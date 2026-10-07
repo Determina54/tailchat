@@ -1,5 +1,78 @@
 
 
+## [1.11.18](https://github.com/msgbyte/tailchat/compare/v1.11.17...v1.11.18) (2026-10-02)
+
+
+### Bug Fixes
+
+* **gateway:** block moleculer internal actions from api and socket ([d8dece9](https://github.com/msgbyte/tailchat/commit/d8dece9bd8680231fb1a64ce6a2dfef9646508d4))
+* **group:** harden permission checks and warn on default secret ([817fe5a](https://github.com/msgbyte/tailchat/commit/817fe5a7d23869beff2099c472b7009f454c1ad6))
+* **group:** reject unknown panel ids when updating group panels ([8ba18c7](https://github.com/msgbyte/tailchat/commit/8ba18c7dc269a9764465fe4f79495432e7e79260))
+* **user:** only allow claiming own temporary account ([235223a](https://github.com/msgbyte/tailchat/commit/235223ae1d039a782dec6126a1956cc6c5f04742))
+
+
+### Features
+
+* **audit:** record admin and group management actions ([b54327a](https://github.com/msgbyte/tailchat/commit/b54327a48b0f16fc23653eb9f13976bcba3ae03f))
+
+## [1.11.17](https://github.com/msgbyte/tailchat/compare/v1.11.16...v1.11.17) (2026-09-27)
+
+
+### Bug Fixes
+
+* **docker:** build minio client from pinned source ([4d54a6e](https://github.com/msgbyte/tailchat/commit/4d54a6e0af2506e4f28d2109087e2330e10ce958))
+* **test:** transform sanitizer esm dependencies ([246716e](https://github.com/msgbyte/tailchat/commit/246716e80f6b8a04144aca4b93c26c981cc67964))
+
+## [1.11.16](https://github.com/msgbyte/tailchat/compare/v1.11.15...v1.11.16) (2026-09-27)
+
+
+### Bug Fixes
+
+* **user:** isolate cached profiles by viewer ([b35f99c](https://github.com/msgbyte/tailchat/commit/b35f99c16acf2d1aee93ea3a53d48dd1db8012b4))
+* **user:** restrict profile emails to their owner ([9c8d675](https://github.com/msgbyte/tailchat/commit/9c8d6757a54ad2e008ebe06771e59f704eab2c2d))
+
+## [1.11.15](https://github.com/msgbyte/tailchat/compare/v1.11.14...v1.11.15) (2026-09-26)
+
+
+### Bug Fixes
+
+* **admin-next:** align user action menu items ([564c309](https://github.com/msgbyte/tailchat/commit/564c30914c164b1e32e44c4afa39423b1fab2b73))
+* **admin-next:** resolve backend image urls ([ddd2ee6](https://github.com/msgbyte/tailchat/commit/ddd2ee65bea6a8450de9fd6925f1126b42df3b5e))
+* **friend:** restrict relation creation to internal services ([ac217d8](https://github.com/msgbyte/tailchat/commit/ac217d8e5524093657f860855645f23e0fabf57d))
+
+
+### Features
+
+* **admin-next:** add collapsible icon-only sidebar ([3f932c5](https://github.com/msgbyte/tailchat/commit/3f932c55d6940266d95059fd3508e5a205ed482f))
+* **admin-next:** add resizable table columns ([c7476d2](https://github.com/msgbyte/tailchat/commit/c7476d2d9063e7af44330bd998522b68adce5338))
+* **admin-next:** support nickname#discriminator user search ([7109e7a](https://github.com/msgbyte/tailchat/commit/7109e7ae0f352073fa70a2c343ceb549b18ed016))
+* **socketio:** attach client ip to socket meta ([3614f66](https://github.com/msgbyte/tailchat/commit/3614f66de3adc75760617dd88375ffa36ef810ae))
+* **user:** rate limit registration attempts per ip ([7f9e87f](https://github.com/msgbyte/tailchat/commit/7f9e87ff1ad2ea8f879acd361a7532d22dfa804e))
+
+## [1.11.14](https://github.com/msgbyte/tailchat/compare/v1.11.13...v1.11.14) (2026-09-22)
+
+
+### Bug Fixes
+
+* **docker:** install mc from quay.io image ([0258dc8](https://github.com/msgbyte/tailchat/commit/0258dc88f5066d802a11f82e99e57ab4f2c80368))
+
+## [1.11.13](https://github.com/msgbyte/tailchat/compare/v1.11.12...v1.11.13) (2026-09-22)
+
+
+### Bug Fixes
+
+* **admin:** enable horizontal user table scrolling ([b6b9ac6](https://github.com/msgbyte/tailchat/commit/b6b9ac68eb665eca9ccdf41dfe357764c2646bcc))
+* **build:** pin pnpm version ([73ccc91](https://github.com/msgbyte/tailchat/commit/73ccc91bab184c336d3aa0679bf8f3eb60fb044b))
+* **chat:** enforce converse membership, add leave and friend-only invite ([#318](https://github.com/msgbyte/tailchat/issues/318)) ([dc02b00](https://github.com/msgbyte/tailchat/commit/dc02b00d1d0932eea6f0156710a387fe0471c644))
+* **nginx:** preserve client ip and websocket headers ([dabeedc](https://github.com/msgbyte/tailchat/commit/dabeedc94b2037208704d846127fd7ac676e8e73))
+* **openapi:** require manageUser permission to add bot to group ([2d3c789](https://github.com/msgbyte/tailchat/commit/2d3c7897492dbd3f05c877ca6a2243e579b0d3aa))
+
+
+### Features
+
+* **admin:** add admin next app ([#311](https://github.com/msgbyte/tailchat/issues/311)) ([d6e3ad1](https://github.com/msgbyte/tailchat/commit/d6e3ad1e1ac10b57ba75a84b57c5d1ccfbef192e))
+* **chat:** add slow mode for group text panels ([d2a2928](https://github.com/msgbyte/tailchat/commit/d2a292879ac804bad6e38b83ab575772993c282f))
+
 ## [1.11.12](https://github.com/msgbyte/tailchat/compare/v1.11.11...v1.11.12) (2026-07-20)
 
 

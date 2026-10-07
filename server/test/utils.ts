@@ -1,8 +1,21 @@
 import jwt from 'jsonwebtoken';
 import type { DocumentType } from '@typegoose/typegoose';
 import { config, TcService, TcBroker } from 'tailchat-server-sdk';
+import type { BrokerOptions } from 'tailchat-server-sdk';
+import type { Types } from 'mongoose';
+import auditLogModel from '../models/auditLog';
+
+// 记录测试过程中写入的审计日志, 测试结束后清理
+const auditLogIds: Types.ObjectId[] = [];
+const createAuditLog = auditLogModel.create.bind(auditLogModel);
+jest.spyOn(auditLogModel, 'create').mockImplementation((async (doc: any) => {
+  const log = await createAuditLog(doc);
+  auditLogIds.push(log._id);
+  return log;
+}) as any);
 
 interface TestServiceBrokerOptions {
+  brokerOptions?: BrokerOptions;
   contextCallMockFn?: (actionName: string, params: any, opts?: any) => void;
 }
 
@@ -26,7 +39,7 @@ export function createTestServiceBroker<T extends TcService = TcService>(
     entity: E
   ) => Promise<DocumentType<R & { _id: string }>>;
 } {
-  const broker = new TcBroker({ logger: false });
+  const broker = new TcBroker({ logger: false, ...options?.brokerOptions });
   const service = broker.createService(serviceCls) as MockedService<T>;
   const testDataStack = [];
   const contextCallMock = jest.fn(options?.contextCallMockFn);
@@ -58,6 +71,9 @@ export function createTestServiceBroker<T extends TcService = TcService>(
       .catch((err) => {
         console.error('测试数据清理失败:', err);
       });
+    if (auditLogIds.length > 0) {
+      await auditLogModel.deleteMany({ _id: { $in: auditLogIds } });
+    }
 
     await broker.stop();
   });

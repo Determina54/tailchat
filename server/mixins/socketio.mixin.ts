@@ -19,8 +19,12 @@ import { ServiceUnavailableError } from 'tailchat-server-sdk';
 import { isValidStr } from '../lib/utils';
 import bcrypt from 'bcryptjs';
 import msgpackParser from 'socket.io-msgpack-parser';
+import { getRequestIp } from '../lib/requestIp';
 
-const blacklist: (string | RegExp)[] = ['gateway.*'];
+const blacklist: (string | RegExp)[] = [
+  'gateway.*',
+  /^\$/, // moleculer internal services like "$node", which expose broker options
+];
 
 function checkBlacklist(eventName: string): boolean {
   return blacklist.some((item) => {
@@ -147,6 +151,7 @@ export const TcSocketIOService = (
           socket.data.user = user;
           socket.data.token = token;
           socket.data.userId = user._id;
+          socket.data.ip = getRequestIp(socket.request);
 
           next();
         } catch (e) {

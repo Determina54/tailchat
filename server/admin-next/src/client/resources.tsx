@@ -9,14 +9,19 @@ import {
   Pagination,
   Popconfirm,
   Switch,
-  Table,
   Tag,
   Tooltip,
   type TableColumnProps,
 } from '@arco-design/web-react';
 import filesize from 'filesize';
 import { api, callAction, listResource } from './api';
-import { downloadCSV, getValue, toCSV, type RouteId } from './core';
+import {
+  downloadCSV,
+  getValue,
+  parseUrlStr,
+  toCSV,
+  type RouteId,
+} from './core';
 import {
   Button,
   Card,
@@ -24,6 +29,7 @@ import {
   ErrorState,
   Modal,
   PageHeader,
+  Table,
   useToast,
 } from './components';
 import { Icon } from './icons';
@@ -151,6 +157,28 @@ const schemas: Record<string, ResourceSchema> = {
       id(true),
       { key: 'userId', label: L('用户 ID', 'User ID') },
       { key: 'ip', label: L('IP 地址', 'IP address'), sortable: true },
+      { key: 'userAgent', label: L('设备信息', 'User agent'), wide: true },
+      createdAt,
+    ],
+  },
+  'audit-logs': {
+    route: 'audit-logs',
+    resource: 'audit_logs',
+    export: true,
+    fields: [
+      id(true),
+      { key: 'source', label: L('来源', 'Source') },
+      { key: 'action', label: L('操作', 'Action'), wide: true },
+      { key: 'operator', label: L('操作人', 'Operator') },
+      { key: 'groupId', label: L('群组 ID', 'Group ID') },
+      { key: 'success', label: L('成功', 'Succeeded'), type: 'boolean' },
+      {
+        key: 'detail',
+        label: L('操作参数', 'Detail'),
+        type: 'json',
+        wide: true,
+      },
+      { key: 'ip', label: L('IP 地址', 'IP address') },
       { key: 'userAgent', label: L('设备信息', 'User agent'), wide: true },
       createdAt,
     ],
@@ -324,7 +352,7 @@ function formatValue(
     return (
       <Image
         className="table-image"
-        src={String(value)}
+        src={parseUrlStr(String(value))}
         alt=""
         width={56}
         height={56}
@@ -933,6 +961,7 @@ export function ResourcePage({ route }: { route: keyof typeof schemas }) {
           <ErrorState retry={load} message={error} />
         ) : (
           <Table
+            key={route}
             className="admin-table resource-table"
             columns={columns}
             data={rows}
@@ -952,14 +981,6 @@ export function ResourcePage({ route }: { route: keyof typeof schemas }) {
                   }
                 : undefined
             }
-            scroll={{
-              x: schema.fields.reduce(
-                (width, field) =>
-                  width +
-                  (field.wide ? 260 : field.type === 'image' ? 90 : 160),
-                route === 'users' ? 120 : 150
-              ),
-            }}
             onChange={(_, sorterInfo) => {
               const current = Array.isArray(sorterInfo)
                 ? sorterInfo[0]

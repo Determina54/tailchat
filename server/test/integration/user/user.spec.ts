@@ -8,7 +8,7 @@ import userLoginLogModel from '../../../models/user/userLoginLog';
 /**
  * 创建测试用户
  */
-function createTestUser(email = 'foo@bar.com') {
+function createTestUser(email = `${generateRandomStr()}@example.com`) {
   return {
     email,
     nickname: getEmailAddress(email),
@@ -34,21 +34,34 @@ function createTestTemporaryUser() {
 
 describe('Test "user" service', () => {
   const { broker, service, insertTestData } =
-    createTestServiceBroker<UserService>(UserService);
+    createTestServiceBroker<UserService>(UserService, {
+      brokerOptions: {
+        cacher: {
+          type: 'Redis',
+          options: {
+            prefix: `user-test-${generateRandomStr()}`,
+            redis: process.env.REDIS_URL,
+          },
+        },
+      },
+    });
 
   test('Test "user.register"', async () => {
     const params = {
       email: 'test@example.com',
       password: '123456',
     };
-    const user: any = await broker.call('user.register', params);
+    const user: any = await broker.call('user.register', params, {
+      meta: { ip: '203.0.113.1' },
+    });
 
     try {
       expect(user.email).toBe(params.email);
-      expect(user.avatar).toBe(null);
+      expect(user.avatar).toBeUndefined();
       expect(user.nickname).toBe(getEmailAddress(params.email));
     } finally {
       await service.adapter.removeById(user._id);
+      await userLoginLogModel.deleteMany({ userId: user._id });
     }
   });
 
@@ -57,7 +70,9 @@ describe('Test "user" service', () => {
     const params = {
       nickname,
     };
-    const user: any = await broker.call('user.createTemporaryUser', params);
+    const user: any = await broker.call('user.createTemporaryUser', params, {
+      meta: { ip: '203.0.113.1' },
+    });
 
     try {
       expect(user).toHaveProperty('nickname', nickname);
@@ -67,6 +82,7 @@ describe('Test "user" service', () => {
       expect(String(user.email).endsWith('.temporary@msgbyte.com'));
     } finally {
       await service.adapter.removeById(user._id);
+      await userLoginLogModel.deleteMany({ userId: user._id });
     }
   });
 
@@ -75,11 +91,15 @@ describe('Test "user" service', () => {
     const email = `${generateRandomStr()}@msgbyte.com`;
     const password = '654321';
 
-    const newUser: any = await broker.call('user.claimTemporaryUser', {
-      userId: String(testDoc._id),
-      email,
-      password,
-    });
+    const newUser: any = await broker.call(
+      'user.claimTemporaryUser',
+      {
+        userId: String(testDoc._id),
+        email,
+        password,
+      },
+      { meta: { userId: String(testDoc._id) } }
+    );
 
     expect(newUser).toHaveProperty('nickname', testDoc.nickname); // 昵称不变
     expect(newUser).toHaveProperty('email', email);
@@ -87,6 +107,27 @@ describe('Test "user" service', () => {
     expect(bcrypt.compareSync(password, newUser.password)).toBe(true); // 校验密码修改是否正确
     expect(newUser).toHaveProperty('token');
     expect(newUser).toHaveProperty('temporary', false);
+  });
+
+  test('Test "user.claimTemporaryUser" rejects claiming other temporary user', async () => {
+    const victim = await insertTestData(createTestTemporaryUser());
+    const attacker = await insertTestData(createTestTemporaryUser());
+
+    await expect(
+      broker.call(
+        'user.claimTemporaryUser',
+        {
+          userId: String(victim._id),
+          email: `${generateRandomStr()}@msgbyte.com`,
+          password: '654321',
+        },
+        { meta: { userId: String(attacker._id) } }
+      )
+    ).rejects.toThrow();
+
+    const doc = await service.adapter.model.findById(victim._id);
+    expect(doc.temporary).toBe(true);
+    expect(doc.email).toBe(victim.email);
   });
 
   test('Test "user.searchUserWithUniqueName"', async () => {

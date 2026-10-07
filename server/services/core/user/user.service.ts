@@ -18,10 +18,13 @@ import {
   Errors,
   DataNotFoundError,
   EntityError,
+  NoPermissionError,
   db,
   call,
   BannedError,
   UserStructWithToken,
+  RateLimitError,
+  ServiceUnavailableError,
 } from 'tailchat-server-sdk';
 import {
   generateRandomNumStr,
@@ -32,6 +35,9 @@ import type { TFunction } from 'i18next';
 import _ from 'lodash';
 import type { UserStruct } from 'tailchat-server-sdk';
 import userLoginLogModel from '../../../models/user/userLoginLog';
+import { getRegistrationIp } from '../../../lib/requestIp';
+import RedisSlowModeCounter from '../chat/slowModeCounter';
+import type { SlowModeRedisClient } from '../chat/slowModeCounter';
 
 const { isValidObjectId, Types } = db;
 
@@ -48,7 +54,7 @@ class UserService extends TcService {
     this.registerLocalDb(require('../../../models/user/user').default);
     this.registerMixin(TcCacheCleaner(['cache.clean.user']));
 
-    // Public fields
+    // Serialized fields; public profile queries filter email by viewer below.
     this.registerDbField([
       '_id',
       'username',
@@ -179,6 +185,13 @@ class UserService extends TcService {
       }
     );
     this.registerAction('getUserInfo', this.getUserInfo, {
+      optionalAuth: true,
+      params: {
+        userId: 'string',
+      },
+    });
+    this.registerAction('getUserInfoInternal', this.getUserInfoInternal, {
+      visibility: 'public',
       params: {
         userId: 'string',
       },
@@ -188,6 +201,7 @@ class UserService extends TcService {
       },
     });
     this.registerAction('getUserInfoList', this.getUserInfoList, {
+      optionalAuth: true,
       params: {
         userIds: {
           type: 'array',
@@ -443,8 +457,52 @@ class UserService extends TcService {
   }
 
   /**
-   * 用户注册
+   * 普通注册和游客注册共享的 IP 配额
    */
+  private async consumeRegistrationQuota(
+    ctx: TcPureContext<any, { ip?: string }>
+  ) {
+    const ip = getRegistrationIp(ctx.meta.ip);
+    const cacher = this.broker.cacher as unknown as
+      | { client?: SlowModeRedisClient & { status: string }; prefix?: string }
+      | undefined;
+    if (!ip || !cacher?.client || cacher.client.status !== 'ready') {
+      throw new ServiceUnavailableError();
+    }
+
+    // Reuse the atomic Redis rolling window; failed registration attempts keep their slots.
+    const counter = new RedisSlowModeCounter(
+      cacher.client,
+      `${cacher.prefix ?? 'tailchat:'}registration:v1`
+    );
+    for (const [intervalSeconds, maxMessages] of [
+      [3600, config.registrationIpLimit.hourly],
+      [86400, config.registrationIpLimit.daily],
+    ]) {
+      const result = await counter
+        .consume({
+          converseId: `${this.broker.namespace ?? ''}:${config.apiUrl}`,
+          userId: ip,
+          intervalSeconds,
+          maxMessages,
+        })
+        .catch(() => {
+          throw new ServiceUnavailableError();
+        });
+      if (!result.accepted) {
+        throw new RateLimitError(
+          ctx.meta.t('注册过于频繁，请稍后再试'),
+          'REGISTER_IP_LIMITED',
+          {
+            retryAfterMs: result.retryAfterMs,
+            windowSeconds: intervalSeconds,
+          }
+        );
+      }
+    }
+  }
+
+  /** 用户注册 */
   async register(
     ctx: TcPureContext<
       {
@@ -460,13 +518,12 @@ class UserService extends TcService {
   ): Promise<UserStructWithToken> {
     const params = { ...ctx.params };
     const t = ctx.meta.t;
-    await this.validateEntity(params);
-
-    await this.validateRegisterParams(params, t);
-
     if (config.feature.disableUserRegister) {
       throw new Error(t('服务器不允许新用户注册'));
     }
+    await this.consumeRegistrationQuota(ctx);
+    await this.validateEntity(params);
+    await this.validateRegisterParams(params, t);
 
     const nickname =
       params.nickname || (params.username ?? getEmailAddress(params.email));
@@ -518,7 +575,10 @@ class UserService extends TcService {
   ): Promise<string> {
     const userId = ctx.params.userId;
 
-    const userInfo = await call(ctx).getUserInfo(userId);
+    const userInfo = await ctx.call<UserStruct, { userId: string }>(
+      'user.getUserInfoInternal',
+      { userId }
+    );
     const token = this.generateJWT({
       _id: userInfo._id,
       nickname: userInfo.nickname,
@@ -571,6 +631,7 @@ class UserService extends TcService {
     if (config.feature.disableGuestLogin) {
       throw new Error(t('服务器不允许游客登录'));
     }
+    await this.consumeRegistrationQuota(ctx);
 
     const discriminator = await this.adapter.model.generateDiscriminator(
       nickname
@@ -598,7 +659,7 @@ class UserService extends TcService {
    * 认领临时用户
    */
   async claimTemporaryUser(
-    ctx: TcPureContext<{
+    ctx: TcContext<{
       userId: string;
       username?: string;
       email: string;
@@ -608,6 +669,11 @@ class UserService extends TcService {
   ) {
     const params = ctx.params;
     const t = ctx.meta.t;
+
+    if (params.userId !== ctx.meta.userId) {
+      // 只能认领当前登录的临时账号
+      throw new NoPermissionError(t('没有操作权限'));
+    }
 
     const user = await this.adapter.findById(params.userId);
     if (!user) {
@@ -848,13 +914,36 @@ class UserService extends TcService {
     });
     const user = await this.transformDocuments(ctx, {}, doc);
 
-    return user;
+    return this.filterUserEmail(user, ctx.meta.userId);
   }
 
   /**
    * 获取用户信息
    */
-  async getUserInfo(ctx: PureContext<{ userId: string }>) {
+  async getUserInfo(
+    ctx: TcPureContext<{ userId: string }, { userId?: string }>
+  ) {
+    const user = await ctx.call<UserStruct, { userId: string }>(
+      'user.getUserInfoInternal',
+      { userId: ctx.params.userId }
+    );
+
+    // Filter after reading the shared cache, never cache a viewer-specific result.
+    return this.filterUserEmail(user, ctx.meta.userId);
+  }
+
+  private filterUserEmail(user: UserStruct | null, viewerId?: string) {
+    if (!user || String(user._id) === viewerId) {
+      return user;
+    }
+
+    return _.omit(user, 'email');
+  }
+
+  /**
+   * 仅服务内部使用的完整用户资料
+   */
+  async getUserInfoInternal(ctx: PureContext<{ userId: string }>) {
     const userId = ctx.params.userId;
 
     const doc = await this.adapter.findById(userId);
@@ -1175,7 +1264,7 @@ class UserService extends TcService {
     const { token, userId } = ctx.meta;
     await Promise.all([
       this.cleanActionCache('resolveToken', [token]),
-      this.cleanActionCache('getUserInfo', [userId]),
+      this.cleanActionCache('getUserInfoInternal', [userId]),
     ]);
   }
 
@@ -1183,7 +1272,7 @@ class UserService extends TcService {
    * 根据用户ID清理缓存信息
    */
   private async cleanUserInfoCache(userId: string) {
-    await this.cleanActionCache('getUserInfo', [String(userId)]);
+    await this.cleanActionCache('getUserInfoInternal', [String(userId)]);
   }
 
   /**

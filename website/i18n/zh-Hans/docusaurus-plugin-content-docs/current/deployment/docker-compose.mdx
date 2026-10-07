@@ -88,6 +88,8 @@ git clone https://github.com/msgbyte/tailchat.git # 克隆项目到本地
 cd tailchat && docker compose build
 ```
 
+Docker 构建会在独立的 Go 阶段中，从固定版本的源码编译 MinIO 客户端（`mc`），支持 amd64 和 arm64。构建需要访问 Go 模块代理和校验数据库，无需在宿主机安装 Go。
+
 *编译对服务器配置有一定要求，2核4G编译约10分钟，供参考*
 
 编译完毕后可以通过 `docker images` 查看编译完毕的镜像。
@@ -129,7 +131,7 @@ wget https://raw.githubusercontent.com/msgbyte/tailchat/master/docker-compose.en
 修改 `docker-compose.env` 文件的配置，以下字段推荐修改:
 
 - `API_URL` 对外可访问的url地址，用于文件服务访问, 可以是域名也可以是ip **如果出现发送图片不能正常显示就是这个变量没有设置**
-- `SECRET` 服务端加密秘钥，用于生成Token. 默认为 `tailchat`
+- `SECRET` 服务端加密秘钥，用于生成Token. 默认为 `tailchat`, **该默认值是公开的, 生产环境必须修改为足够长的随机字符串**
 
 
   </TabItem>
@@ -140,7 +142,7 @@ wget https://raw.githubusercontent.com/msgbyte/tailchat/master/docker-compose.en
 修改 `docker-compose.env` 文件的配置，以下字段推荐修改:
 
 - `API_URL` 对外可访问的url地址，用于文件服务访问, 可以是域名也可以是ip
-- `SECRET` 服务端加密秘钥，用于生成Token. 默认为 `tailchat`
+- `SECRET` 服务端加密秘钥，用于生成Token. 默认为 `tailchat`, **该默认值是公开的, 生产环境必须修改为足够长的随机字符串**
 
 
   </TabItem>

@@ -17,11 +17,17 @@ import { isObjectId } from '../utils/string-helper';
 export type { UserBaseInfo };
 
 export interface UserLoginInfo extends UserBaseInfo {
+  email: string;
   token: string;
   createdAt: string;
 }
 
 export interface UserSettings {
+  /**
+   * 仅允许好友邀请创建或加入多人会话，默认关闭
+   */
+  onlyAllowFriendInvite?: boolean;
+
   /**
    * 消息列表虚拟化
    */

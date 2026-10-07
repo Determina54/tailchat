@@ -20,21 +20,7 @@ import accepts from 'accepts';
 import send from 'send';
 import path from 'path';
 import mime from 'mime';
-
-function getHeaderValue(
-  header: string | string[] | undefined
-): string | undefined {
-  return Array.isArray(header) ? header[0] : header;
-}
-
-function getRequestIp(req: IncomingMessage): string | undefined {
-  const forwardedFor = getHeaderValue(req.headers['x-forwarded-for'])
-    ?.split(',')[0]
-    ?.trim();
-  const realIp = getHeaderValue(req.headers['x-real-ip'])?.trim();
-
-  return forwardedFor || realIp || req.socket.remoteAddress;
-}
+import { getRequestIp } from '../../lib/requestIp';
 
 export default class ApiService extends TcService {
   authWhitelist = [];
@@ -130,8 +116,9 @@ export default class ApiService extends TcService {
       {
         path: '/api',
         whitelist: [
-          // Access to any actions in all services under "/api" URL
-          '**',
+          // Access to any actions in all services under "/api" URL,
+          // except moleculer internal services like "$node" which expose broker options
+          /^[^$]/,
         ],
         // Route-level Express middlewares. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Middlewares
         use: [],
@@ -379,13 +366,16 @@ export default class ApiService extends TcService {
   async authorize(
     ctx: PureContext<{}, any>,
     route: unknown,
-    req: IncomingMessage
+    req: IncomingMessage & { $action?: { optionalAuth?: boolean } }
   ) {
-    if (checkPathMatch(this.getAuthWhitelist(), req.url)) {
+    const token = req.headers['x-token'];
+    if (req.$action?.optionalAuth === true) {
+      if (token === undefined) {
+        return null;
+      }
+    } else if (checkPathMatch(this.getAuthWhitelist(), req.url)) {
       return null;
     }
-
-    const token = req.headers['x-token'] as string;
 
     if (typeof token !== 'string') {
       throw new ApiGatewayErrors.UnAuthorizedError(

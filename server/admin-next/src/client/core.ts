@@ -13,6 +13,7 @@ export const ROUTES = [
   'cache',
   'system-notify',
   'system',
+  'audit-logs',
 ] as const;
 
 export type RouteId = (typeof ROUTES)[number];
@@ -26,6 +27,16 @@ export interface AuthSession {
 export function normalizeRoute(pathname: string): RouteId {
   const route = pathname.replace(/^\/admin-next\/?/, '').replace(/\/$/, '');
   return ROUTES.includes(route as RouteId) ? (route as RouteId) : 'dashboard';
+}
+
+export function parseUrlStr(originUrl: string): string {
+  const backend =
+    process.env.NODE_ENV === 'development'
+      ? 'http://localhost:11000'
+      : window.location.origin;
+  return originUrl
+    .replace('{BACKEND}', backend)
+    .replace('%7BBACKEND%7D', backend);
 }
 
 export function readAuth(

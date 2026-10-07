@@ -54,6 +54,8 @@ const commonZh: Record<string, string> = {
   'auth.expired': '登录已过期，请重新登录',
   'auth.logout': '退出登录',
   'shell.menu': '打开导航',
+  'shell.collapse': '收起侧边栏',
+  'shell.expand': '展开侧边栏',
   'shell.command': '快速跳转',
   'shell.commandHint': '按 ⌘K 快速跳转',
   'shell.commandPlaceholder': '搜索页面…',
@@ -77,6 +79,7 @@ const commonZh: Record<string, string> = {
   'route.cache': '缓存管理',
   'route.system-notify': '系统通知',
   'route.system': '系统设置',
+  'route.audit-logs': '审计日志',
   'description.dashboard': '掌握用户、群组、消息和文件的实时概况',
   'description.analytics': '查看近期开启协作的用户与群组排行',
   'description.users': '管理账号资料、登录状态与访问权限',
@@ -91,6 +94,7 @@ const commonZh: Record<string, string> = {
   'description.cache': '按范围清理服务端缓存',
   'description.system-notify': '向全部或指定用户发送 Markdown 收件箱通知',
   'description.system': '查看客户端策略并配置服务器品牌与公告',
+  'description.audit-logs': '追溯管理后台与群组角色、成员、面板的管理操作',
   'dashboard.welcome': '欢迎回来，{{name}}',
   'dashboard.users': '用户',
   'dashboard.groups': '群组',
@@ -224,6 +228,8 @@ const commonEn: Record<string, string> = {
   'auth.expired': 'Your session expired. Sign in again.',
   'auth.logout': 'Sign out',
   'shell.menu': 'Open navigation',
+  'shell.collapse': 'Collapse sidebar',
+  'shell.expand': 'Expand sidebar',
   'shell.command': 'Quick navigation',
   'shell.commandHint': 'Press ⌘K to jump',
   'shell.commandPlaceholder': 'Search pages…',
@@ -247,6 +253,7 @@ const commonEn: Record<string, string> = {
   'route.cache': 'Cache',
   'route.system-notify': 'System notification',
   'route.system': 'System settings',
+  'route.audit-logs': 'Audit logs',
   'description.dashboard':
     'Track users, groups, messages, and files at a glance',
   'description.analytics':
@@ -266,6 +273,8 @@ const commonEn: Record<string, string> = {
     'Send Markdown inbox notifications to all or selected users',
   'description.system':
     'Review client policy and configure branding and announcements',
+  'description.audit-logs':
+    'Trace admin panel actions and group role, member, and panel changes',
   'dashboard.welcome': 'Welcome back, {{name}}',
   'dashboard.users': 'Users',
   'dashboard.groups': 'Groups',

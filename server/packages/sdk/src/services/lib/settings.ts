@@ -3,6 +3,14 @@ import _ from 'lodash';
 
 dotenv.config();
 
+function positiveIntegerEnv(name: string, fallback: number): number {
+  const value = Number(process.env[name] ?? fallback);
+  if (!Number.isSafeInteger(value) || value < 1) {
+    throw new Error(`${name} must be a positive integer`);
+  }
+  return value;
+}
+
 /**
  * 配置信息
  */
@@ -14,6 +22,12 @@ const requestTimeout = process.env.REQUEST_TIMEOUT
   ? Number(process.env.REQUEST_TIMEOUT)
   : 10 * 1000; // default 0 (unit: milliseconds)
 
+if (!process.env.SECRET && process.env.NODE_ENV === 'production') {
+  console.warn(
+    '[Tailchat] SECRET is not set, falling back to a publicly known default. Anyone can forge user tokens, please set a strong random SECRET.'
+  );
+}
+
 export const config = {
   port,
   secret: process.env.SECRET || 'tailchat',
@@ -23,6 +37,10 @@ export const config = {
    */
   enableSocketAdmin: !!process.env.ADMIN,
   redisUrl: process.env.REDIS_URL,
+  registrationIpLimit: {
+    hourly: positiveIntegerEnv('REGISTER_IP_LIMIT_PER_HOUR', 3),
+    daily: positiveIntegerEnv('REGISTER_IP_LIMIT_PER_DAY', 10),
+  },
   mongoUrl: process.env.MONGO_URL,
   storage: {
     type: 'minio', // 可选: minio
@@ -84,8 +102,6 @@ export const builtinAuthWhitelist = [
   '/user/register',
   '/user/createTemporaryUser',
   '/user/resolveToken',
-  '/user/getUserInfo',
-  '/user/getUserInfoList',
   '/user/checkTokenValid',
   '/group/getGroupBasicInfo',
   '/group/invite/findInviteByCode',
