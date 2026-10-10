@@ -145,6 +145,28 @@ describe('gd-studio 参数归一化', () => {
     expect(a).toBe(b);
     expect(a).not.toBe(c);
   });
+
+  test('接受字符串形式的数值参数（HTTP query 传输）', () => {
+    // GET query 里的数值都是字符串，必须能正常归一化
+    expect(
+      normalizeMusicParams('search', { name: 'x', count: '20', pages: '2' })
+        .params
+    ).toEqual({ name: 'x', count: 20, pages: 2 });
+
+    expect(normalizeMusicParams('url', { id: '1', br: '320' }).params).toEqual({
+      id: '1',
+      br: 320,
+    });
+
+    expect(
+      normalizeMusicParams('pic', { id: 'p', size: '500' }).params
+    ).toEqual({ id: 'p', size: 500 });
+
+    // 非数值仍然回退到默认值
+    expect(
+      normalizeMusicParams('search', { name: 'x', count: 'abc' }).params.count
+    ).toBe(20);
+  });
 });
 
 describe('gd-studio 错误映射', () => {

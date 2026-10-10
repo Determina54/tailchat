@@ -81,6 +81,22 @@ type RedisClientLike = RedisLike &
   RateLimitRedisLike;
 
 /**
+ * 数值参数
+ *
+ * NOTICE: 通过 HTTP GET 调用时，query 里的数值都是字符串（例如 `count=20`），
+ * 必须开启 convert 让 moleculer 做类型转换，否则会返回 422。
+ */
+export const NUMBER_PARAM = {
+  type: 'number',
+  convert: true,
+} as const;
+
+export const OPTIONAL_NUMBER_PARAM = {
+  ...NUMBER_PARAM,
+  optional: true,
+} as const;
+
+/**
  * multisic
  *
  * 听音乐插件：以 groupId 作为音乐房间 ID，服务端维护权威播放状态
@@ -135,7 +151,7 @@ class MultiplayService extends TcService {
       params: { groupId: 'string' },
     });
     this.registerAction('seek', this.seek, {
-      params: { groupId: 'string', time: 'number' },
+      params: { groupId: 'string', time: NUMBER_PARAM },
     });
     this.registerAction('next', this.next, {
       params: { groupId: 'string' },
@@ -144,7 +160,7 @@ class MultiplayService extends TcService {
       params: { groupId: 'string' },
     });
     this.registerAction('volume', this.volume, {
-      params: { groupId: 'string', volume: 'number' },
+      params: { groupId: 'string', volume: NUMBER_PARAM },
     });
     this.registerAction('mute', this.mute, {
       params: { groupId: 'string', memberId: 'string' },
@@ -153,15 +169,15 @@ class MultiplayService extends TcService {
       params: {
         name: 'string',
         source: { type: 'string', optional: true },
-        count: { type: 'number', optional: true },
-        pages: { type: 'number', optional: true },
+        count: OPTIONAL_NUMBER_PARAM,
+        pages: OPTIONAL_NUMBER_PARAM,
       },
     });
     this.registerAction('url', this.url, {
       params: {
         id: 'string',
         source: { type: 'string', optional: true },
-        br: { type: 'number', optional: true },
+        br: OPTIONAL_NUMBER_PARAM,
       },
     });
     this.registerAction('lyric', this.lyric, {
@@ -171,7 +187,7 @@ class MultiplayService extends TcService {
       params: {
         id: 'string',
         source: { type: 'string', optional: true },
-        size: { type: 'number', optional: true },
+        size: OPTIONAL_NUMBER_PARAM,
       },
     });
   }

@@ -18,6 +18,7 @@ describeMongo('MultiplayService（需要 MONGO_URL）', () => {
   let permissions: string[] = [];
   let online = true;
   let broker: any;
+  let service: any;
   let listcastNotify: jest.Mock;
 
   const contextCallMockFn = (actionName: string, params: any) => {
@@ -74,7 +75,7 @@ describeMongo('MultiplayService（需要 MONGO_URL）', () => {
       call = contextCallMock;
     };
 
-    const service = broker.createService(MultiplayService);
+    service = broker.createService(MultiplayService);
     listcastNotify = jest.fn();
     service.listcastNotify = listcastNotify;
     service.unicastNotify = jest.fn();
@@ -326,5 +327,60 @@ describeMongo('MultiplayService（需要 MONGO_URL）', () => {
         'u1'
       )
     ).rejects.toMatchObject({ code: 442 });
+  });
+
+  test('search 接受 HTTP query 的字符串数值参数', async () => {
+    // GET 请求的 query 值都是字符串，之前会因此返回 422
+    service.gdClient = {
+      search: jest.fn().mockResolvedValue([
+        { id: '1', name: 'Hello', artist: 'Adele', source: 'netease' },
+      ]),
+    };
+
+    await expect(
+      broker.call('plugin:com.music.multiplay.search', {
+        name: 'hello',
+        count: '20',
+        pages: '1',
+      })
+    ).resolves.toEqual([
+      { id: '1', name: 'Hello', artist: 'Adele', source: 'netease' },
+    ]);
+
+    expect(service.gdClient.search).toHaveBeenCalledWith({
+      name: 'hello',
+      count: 20,
+      pages: 1,
+    });
+  });
+
+  test('search 会拒绝非数值的 count', async () => {
+    service.gdClient = { search: jest.fn() };
+
+    await expect(
+      broker.call('plugin:com.music.multiplay.search', {
+        name: 'hello',
+        count: 'abc',
+      })
+    ).rejects.toMatchObject({ code: 422 });
+
+    expect(service.gdClient.search).not.toHaveBeenCalled();
+  });
+
+  test('url / pic 同样接受字符串数值参数', async () => {
+    service.gdClient = {
+      url: jest.fn().mockResolvedValue({ url: 'https://a.mp3' }),
+      pic: jest.fn().mockResolvedValue({ url: 'https://img' }),
+    };
+
+    await expect(
+      broker.call('plugin:com.music.multiplay.url', { id: '1', br: '320' })
+    ).resolves.toEqual({ url: 'https://a.mp3' });
+    expect(service.gdClient.url).toHaveBeenCalledWith({ id: '1', br: 320 });
+
+    await expect(
+      broker.call('plugin:com.music.multiplay.pic', { id: 'p', size: '500' })
+    ).resolves.toEqual({ url: 'https://img' });
+    expect(service.gdClient.pic).toHaveBeenCalledWith({ id: 'p', size: 500 });
   });
 });
